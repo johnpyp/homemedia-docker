@@ -11,4 +11,5 @@
   - [Plex](plex.md)
   - [Sonarr](sonarr.md)
   - [Radarr](radarr.md)
+  - [Bazarr](bazarr.md)
   - [HTTPS Reverse Proxy (optional)](reverse-proxy.md)

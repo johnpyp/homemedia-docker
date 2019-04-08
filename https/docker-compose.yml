@@ -19,9 +19,10 @@ services:
       - 'traefik.local.frontend.rule=Host:deluge.localhost'
       - 'traefik.port=8112'
       - 'traefik.enable=true'
-      - 'traefik.https.frontend.rule=Host:deluge.${DOMAIN}' # delete for no remote access
-      - 'traefik.https.frontend.entryPoints=https' # delete for no remote access
-      - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # delete for no remote access
+      - 'traefik.https.frontend.rule=Host:deluge.${DOMAIN}'
+      - 'traefik.https.frontend.entryPoints=https'
+      - 'traefik.https.frontend.auth.forward.address=http://organizr/api/?v1/auth&group=1'
+      # - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # uncomment this line and comment line above to use Basic Auth instead of Organizr auth
 
   deluge:
     container_name: deluge
@@ -57,7 +58,8 @@ services:
       - 'traefik.enable=true'
       - 'traefik.https.frontend.rule=Host:jackett.${DOMAIN}' # delete for no remote access
       - 'traefik.https.frontend.entryPoints=https' # delete for no remote access
-      - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # delete for no remote access
+      - 'traefik.https.frontend.auth.forward.address=http://organizr/api/?v1/auth&group=1'
+      # - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # uncomment this line and comment line above to use Basic Auth instead of Organizr auth
 
   nzbget:
     container_name: nzbget
@@ -79,7 +81,8 @@ services:
       - 'traefik.enable=true'
       - 'traefik.https.frontend.rule=Host:nzbget.${DOMAIN}' # delete for no remote access
       - 'traefik.https.frontend.entryPoints=https' # delete for no remote access
-      - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # delete for no remote access
+      - 'traefik.https.frontend.auth.forward.address=http://organizr/api/?v1/auth&group=1'
+      # - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # uncomment this line and comment line above to use Basic Auth instead of Organizr auth
 
   sonarr:
     container_name: sonarr
@@ -103,7 +106,8 @@ services:
       - 'traefik.enable=true'
       - 'traefik.https.frontend.rule=Host:sonarr.${DOMAIN}' # delete for no remote access
       - 'traefik.https.frontend.entryPoints=https' # delete for no remote access
-      - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # delete for no remote access
+      - 'traefik.https.frontend.auth.forward.address=http://organizr/api/?v1/auth&group=1'
+      # - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # uncomment this line and comment line above to use Basic Auth instead of Organizr auth
 
   radarr:
     container_name: radarr
@@ -127,7 +131,8 @@ services:
       - 'traefik.enable=true'
       - 'traefik.https.frontend.rule=Host:radarr.${DOMAIN}' # delete for no remote access
       - 'traefik.https.frontend.entryPoints=https' # delete for no remote access
-      - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # delete for no remote access
+      - 'traefik.https.frontend.auth.forward.address=http://organizr/api/?v1/auth&group=1'
+      # - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # uncomment this line and comment line above to use Basic Auth instead of Organizr auth
 
   bazarr:
     container_name: bazarr
@@ -150,7 +155,27 @@ services:
       - 'traefik.enable=true'
       - 'traefik.https.frontend.rule=Host:bazarr.${DOMAIN}' # delete for no remote access
       - 'traefik.https.frontend.entryPoints=https' # delete for no remote access
-      - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # delete for no remote access
+      - 'traefik.https.frontend.auth.forward.address=http://organizr/api/?v1/auth&group=1'
+      # - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # uncomment this line and comment line above to use Basic Auth instead of Organizr auth
+
+  organizr:
+    container_name: organizr
+    image: organizrtools/organizr-v2:latest
+    restart: unless-stopped
+    expose:
+      - '80'
+    environment:
+      - PUID=${PUID} # default user id, defined in .env
+      - PGID=${PGID} # default group id, defined in .env
+    volumes:
+      - ${ROOT}/config/organizr:/config
+    labels:
+      - 'traefik.backend=organizr'
+      - 'traefik.local.frontend.rule=Host:organizr.localhost'
+      - 'traefik.port=80'
+      - 'traefik.enable=true'
+      - 'traefik.https.frontend.rule=Host:organizr.${DOMAIN}' # delete for no remote access
+      - 'traefik.https.frontend.entryPoints=https' # delete for no remote access
 
   plex-server:
     container_name: plex-server
@@ -190,4 +215,5 @@ services:
       - 'traefik.enable=true'
       - 'traefik.https.frontend.rule=Host:traefik.${DOMAIN}' # delete for no remote access
       - 'traefik.https.frontend.entryPoint=https' # delete for no remote access
-      - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # delete for no remote access
+      - 'traefik.https.frontend.auth.forward.address=http://organizr/api/?v1/auth&group=1'
+      # - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # uncomment this line and comment line above to use Basic Auth instead of Organizr auth

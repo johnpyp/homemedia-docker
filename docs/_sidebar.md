@@ -12,4 +12,5 @@
   - [Sonarr](sonarr.md)
   - [Radarr](radarr.md)
   - [Bazarr](bazarr.md)
+  - [Organizr](organizr.md)
   - [HTTPS Reverse Proxy (optional)](reverse-proxy.md)

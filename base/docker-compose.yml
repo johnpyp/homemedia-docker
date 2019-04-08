@@ -11,8 +11,13 @@ services:
       - ${ROOT}/config/vpn:/vpn # OpenVPN configuration
     security_opt:
       - label:disable
+<<<<<<< HEAD
     expose:
       - '8112'
+=======
+    ports:
+      - 8112:8112 # port for deluge web UI to be reachable from local network
+>>>>>>> static-docs
     command: '-r 192.168.1.0/24' # route local network traffic
     labels:
       - 'traefik.backend=vpn'
@@ -37,8 +42,13 @@ services:
     container_name: jackett
     image: linuxserver/jackett:latest
     restart: unless-stopped
+<<<<<<< HEAD
     expose:
       - '9117'
+=======
+    ports:
+      - 9117:9117
+>>>>>>> static-docs
     environment:
       - PUID=${PUID} # default user id, defined in .env
       - PGID=${PGID} # default group id, defined in .env
@@ -57,8 +67,13 @@ services:
     container_name: nzbget
     image: linuxserver/nzbget:latest
     restart: unless-stopped
+<<<<<<< HEAD
     expose:
       - '6789'
+=======
+    ports:
+      - 6789:6789
+>>>>>>> static-docs
     environment:
       - PUID=${PUID} # default user id, defined in .env
       - PGID=${PGID} # default group id, defined in .env
@@ -76,8 +91,13 @@ services:
     container_name: sonarr
     image: linuxserver/sonarr:latest
     restart: unless-stopped
+<<<<<<< HEAD
     expose:
       - '8989'
+=======
+    ports:
+      - 8989:8989
+>>>>>>> static-docs
     environment:
       - PUID=${PUID} # default user id, defined in .env
       - PGID=${PGID} # default group id, defined in .env
@@ -97,8 +117,8 @@ services:
     container_name: radarr
     image: linuxserver/radarr:latest
     restart: unless-stopped
-    expose:
-      - '7878'
+    ports:
+      - 7878:7878
     environment:
       - PUID=${PUID} # default user id, defined in .env
       - PGID=${PGID} # default group id, defined in .env
@@ -118,8 +138,8 @@ services:
     container_name: bazarr
     image: linuxserver/bazarr:latest
     restart: unless-stopped
-    expose:
-      - '6767'
+    ports:
+      - 6767:6767
     environment:
       - PUID=${PUID} # default user id, defined in .env
       - PGID=${PGID} # default group id, defined in .env
@@ -140,7 +160,7 @@ services:
     restart: unless-stopped
     environment:
       - TZ=${TZ} # timezone, defined in .env
-    network_mode: host
+    network_mode: host # access on port 32400
     volumes:
       - ${ROOT}/config/plex/db:/config # plex database
       - ${ROOT}/config/plex/transcode:/transcode # temp transcoded files

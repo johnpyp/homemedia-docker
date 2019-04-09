@@ -11,13 +11,8 @@ services:
       - ${ROOT}/config/vpn:/vpn # OpenVPN configuration
     security_opt:
       - label:disable
-<<<<<<< HEAD
-    expose:
-      - '8112'
-=======
     ports:
       - 8112:8112 # port for deluge web UI to be reachable from local network
->>>>>>> static-docs
     command: '-r 192.168.1.0/24' # route local network traffic
     labels:
       - 'traefik.backend=vpn'
@@ -42,13 +37,8 @@ services:
     container_name: jackett
     image: linuxserver/jackett:latest
     restart: unless-stopped
-<<<<<<< HEAD
-    expose:
-      - '9117'
-=======
     ports:
       - 9117:9117
->>>>>>> static-docs
     environment:
       - PUID=${PUID} # default user id, defined in .env
       - PGID=${PGID} # default group id, defined in .env
@@ -67,13 +57,8 @@ services:
     container_name: nzbget
     image: linuxserver/nzbget:latest
     restart: unless-stopped
-<<<<<<< HEAD
-    expose:
-      - '6789'
-=======
     ports:
       - 6789:6789
->>>>>>> static-docs
     environment:
       - PUID=${PUID} # default user id, defined in .env
       - PGID=${PGID} # default group id, defined in .env
@@ -91,13 +76,8 @@ services:
     container_name: sonarr
     image: linuxserver/sonarr:latest
     restart: unless-stopped
-<<<<<<< HEAD
-    expose:
-      - '8989'
-=======
     ports:
       - 8989:8989
->>>>>>> static-docs
     environment:
       - PUID=${PUID} # default user id, defined in .env
       - PGID=${PGID} # default group id, defined in .env
@@ -158,8 +138,8 @@ services:
     container_name: organizr
     image: organizrtools/organizr-v2:latest
     restart: unless-stopped
-    expose:
-      - '80'
+    ports:
+      - 81:80
     environment:
       - PUID=${PUID} # default user id, defined in .env
       - PGID=${PGID} # default group id, defined in .env

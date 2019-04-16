@@ -20,7 +20,7 @@ The included docker-compose file is your best option for having a seamless exper
 
 It is possible to configure this on your own, however the premade version will work the best, especially while following this tutorial.
 
-1. First, `git clone https://github.com/sebgl/htpc-download-box` into a directory. This is where you will run the full setup from (note: this isn't the same as your media directory)
+1. First, `git clone https://github.com/johnpyp/homemedia-docker` into a directory. This is where you will run the full setup from (note: this isn't the same as your media directory)
 2. Go into the `base` directory. This is the default, and suggested configuration to use to start.
 3. Rename the `.env.example` file included in your chosen directory to `.env`.
 4. Continue this guide, and the docker-compose file snippets you see are already ready for you to use. You'll still need to manually configure your `.env` file and other manual configurations.

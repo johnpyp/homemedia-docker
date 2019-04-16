@@ -1,40 +1,78 @@
 version: '3.4'
 services:
-  vpn:
-    container_name: vpn
-    image: dperson/openvpn-client:latest
+  pia:
+    image: qmcgaw/private-internet-access:latest
     cap_add:
-      - net_admin # required to modify network interfaces
+      - net_admin
+    devices:
+      - /dev/net/tun
     restart: unless-stopped
-    volumes:
-      - /dev/net:/dev/net:z # tun device
-      - ${ROOT}/config/vpn:/vpn # OpenVPN configuration
-    security_opt:
-      - label:disable
     ports:
-      - 8112:8112 # port for deluge web UI to be reachable from local network
-    command: '-r 192.168.1.0/24' # route local network traffic
+      - 8113:8113
+    environment:
+      - USER=${PIA_USER}
+      - PASSWORD=${PIA_PASS}
+      - PROTOCOL=udp
+      - ENCRYPTION=strong
+      - REGION=${PIA_REGION}
+      - EXTRA_SUBNETS=192.168.1.0/24
+      - NONROOT=
     labels:
-      - 'traefik.backend=vpn'
-      - 'traefik.local.frontend.rule=Host:deluge.localhost'
-      - 'traefik.port=8112'
+      - 'traefik.backend=pia'
+      - 'traefik.local.frontend.rule=Host:qbit.localhost'
+      - 'traefik.port=8113'
       - 'traefik.enable=true'
 
-  deluge:
-    container_name: deluge
-    image: linuxserver/deluge:latest
-    restart: unless-stopped
-    network_mode: service:vpn # run on the vpn network
+  hydra2:
+    image: linuxserver/hydra2:latest
     environment:
-      - PUID=${PUID} # default user id, defined in .env
-      - PGID=${PGID} # default group id, defined in .env
-      - TZ=${TZ} # timezone, defined in .env
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
-      - ${ROOT}/downloads:/downloads # downloads folder
-      - ${ROOT}/config/deluge:/config # config files
+      - ${ROOT}/config/hydra2:/config
+      - ${ROOT}/downloads:/downloads
+    ports:
+      - 5076:5076
+    restart: unless-stopped
+    labels:
+      - 'traefik.backend=hydra'
+      - 'traefik.local.frontend.rule=Host:hydra2.localhost'
+      - 'traefik.port=5076'
+      - 'traefik.enable=true'
+
+  #  ombi:
+  #    image: linuxserver/ombi:latest
+  #    environment:
+  #      - PUID=${PUID}
+  #      - PGID=${PGID}
+  #      - TZ=${TZ}
+  #    volumes:
+  #      - ${ROOT}/config/ombi:/config
+  #    ports:
+  #      - 3579:3579
+  #    restart: unless-stopped
+  #    labels:
+  #      - 'traefik.backend=ombi'
+  #      - 'traefik.local.frontend.rule=Host:ombi.localhost'
+  #      - 'traefik.port=3579'
+  #      - 'traefik.enable=true'
+
+  qbittorrent:
+    image: linuxserver/qbittorrent:latest
+    network_mode: service:pia
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK_SET=000
+      - WEBUI_PORT=8113
+    volumes:
+      - ${ROOT}/config/qbittorrent:/config
+      - ${ROOT}/downloads:/downloads
+    restart: unless-stopped
 
   jackett:
-    container_name: jackett
     image: linuxserver/jackett:latest
     restart: unless-stopped
     ports:
@@ -54,7 +92,6 @@ services:
       - 'traefik.enable=true'
 
   nzbget:
-    container_name: nzbget
     image: linuxserver/nzbget:latest
     restart: unless-stopped
     ports:
@@ -73,8 +110,7 @@ services:
       - 'traefik.enable=true'
 
   sonarr:
-    container_name: sonarr
-    image: linuxserver/sonarr:latest
+    image: linuxserver/sonarr:preview
     restart: unless-stopped
     ports:
       - 8989:8989
@@ -94,7 +130,6 @@ services:
       - 'traefik.enable=true'
 
   radarr:
-    container_name: radarr
     image: linuxserver/radarr:latest
     restart: unless-stopped
     ports:
@@ -115,7 +150,6 @@ services:
       - 'traefik.enable=true'
 
   bazarr:
-    container_name: bazarr
     image: linuxserver/bazarr:latest
     restart: unless-stopped
     ports:
@@ -135,11 +169,10 @@ services:
       - 'traefik.enable=true'
 
   organizr:
-    container_name: organizr
     image: organizrtools/organizr-v2:latest
     restart: unless-stopped
-    ports:
-      - 81:80
+    expose:
+      - '80'
     environment:
       - PUID=${PUID} # default user id, defined in .env
       - PGID=${PGID} # default group id, defined in .env
@@ -152,7 +185,6 @@ services:
       - 'traefik.enable=true'
 
   plex-server:
-    container_name: plex-server
     image: plexinc/pms-docker:latest
     restart: unless-stopped
     environment:
@@ -163,15 +195,32 @@ services:
       - ${ROOT}/config/plex/transcode:/transcode # temp transcoded files
       - ${ROOT}/complete:/data # media library
 
+  tautulli:
+    image: linuxserver/tautulli
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${ROOT}/config/tautulli:/config
+      - ${ROOT}/logs/tautulli:/logs
+    ports:
+      - 8181:8181
+    restart: unless-stopped
+    labels:
+      - 'traefik.backend=tautulli'
+      - 'traefik.local.frontend.rule=Host:tautulli.localhost'
+      - 'traefik.port=8181'
+      - 'traefik.enable=true'
+
   traefik:
-    container_name: traefik
     image: traefik:latest
     restart: always
     command:
       --logLevel=info --entryPoints="Name:http Address::80" --defaultEntryPoints=https,http \
       --docker --docker.endpoint="unix:///var/run/docker.sock" \
       --docker.watch=true --docker.exposedbydefault=false \
-      --api
+      --api \
     ports:
       - 80:80
       - 443:443

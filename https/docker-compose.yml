@@ -1,44 +1,88 @@
 version: '3.4'
 services:
-  vpn:
-    container_name: vpn
-    image: dperson/openvpn-client:latest
+  pia:
+    image: qmcgaw/private-internet-access:latest
     cap_add:
-      - net_admin # required to modify network interfaces
+      - net_admin
+    devices:
+      - /dev/net/tun
     restart: unless-stopped
-    volumes:
-      - /dev/net:/dev/net:z # tun device
-      - ${ROOT}/config/vpn:/vpn # OpenVPN configuration
-    security_opt:
-      - label:disable
     ports:
-      - 8112:8112
-    command: '-r 192.168.1.0/24' # route local network traffic
-    labels:
-      - 'traefik.backend=vpn'
-      - 'traefik.local.frontend.rule=Host:deluge.localhost'
-      - 'traefik.port=8112'
-      - 'traefik.enable=true'
-      - 'traefik.https.frontend.rule=Host:deluge.${DOMAIN}'
-      - 'traefik.https.frontend.entryPoints=https'
-      - 'traefik.https.frontend.auth.forward.address=http://organizr/api/?v1/auth&group=1'
-      # - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # uncomment this line and comment line above to use Basic Auth instead of Organizr auth
-
-  deluge:
-    container_name: deluge
-    image: linuxserver/deluge:latest
-    restart: unless-stopped
-    network_mode: service:vpn # run on the vpn network
+      - 8113:8113
     environment:
-      - PUID=${PUID} # default user id, defined in .env
-      - PGID=${PGID} # default group id, defined in .env
-      - TZ=${TZ} # timezone, defined in .env
+      - USER=${PIA_USER}
+      - PASSWORD=${PIA_PASS}
+      - PROTOCOL=udp
+      - ENCRYPTION=strong
+      - REGION=${PIA_REGION}
+      - EXTRA_SUBNETS=192.168.1.0/24
+      - NONROOT=
+    labels:
+      - 'traefik.backend=pia'
+      - 'traefik.local.frontend.rule=Host:qbit.localhost'
+      - 'traefik.port=8113'
+      - 'traefik.enable=true'
+      - 'traefik.https.frontend.rule=Host:qbit.${DOMAIN}'
+      - 'traefik.https.frontend.entrypoints=https'
+      - 'traefik.https.frontend.auth.forward.address=http://organizr/api/?v1/auth&group=1'
+      # - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # uncomment this line and comment line above to use basic auth instead of organizr auth
+
+  hydra2:
+    image: linuxserver/hydra2:latest
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
-      - ${ROOT}/downloads:/downloads # downloads folder
-      - ${ROOT}/config/deluge:/config # config files
+      - ${ROOT}/config/hydra2:/config
+      - ${ROOT}/downloads:/downloads
+    ports:
+      - 5076:5076
+    restart: unless-stopped
+    labels:
+      - 'traefik.backend=hydra'
+      - 'traefik.local.frontend.rule=Host:hydra2.localhost'
+      - 'traefik.port=5076'
+      - 'traefik.enable=true'
+      - 'traefik.https.frontend.rule=Host:hydra2.${DOMAIN}'
+      - 'traefik.https.frontend.entrypoints=https'
+      - 'traefik.https.frontend.auth.forward.address=http://organizr/api/?v1/auth&group=1'
+      # - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # uncomment this line and comment line above to use basic auth instead of organizr auth
+
+  ombi:
+    image: linuxserver/ombi:latest
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${ROOT}/config/ombi:/config
+    ports:
+      - 3579:3579
+    restart: unless-stopped
+    labels:
+      - 'traefik.backend=ombi'
+      - 'traefik.local.frontend.rule=Host:ombi.localhost'
+      - 'traefik.port=3579'
+      - 'traefik.enable=true'
+      - 'traefik.https.frontend.rule=Host:ombi.${DOMAIN}'
+      - 'traefik.https.frontend.entryPoints=https'
+
+  qbittorrent:
+    image: linuxserver/qbittorrent:latest
+    network_mode: service:pia
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK_SET=000
+      - WEBUI_PORT=8113
+    volumes:
+      - ${ROOT}/config/qbittorrent:/config
+      - ${ROOT}/downloads:/downloads
+    restart: unless-stopped
 
   jackett:
-    container_name: jackett
     image: linuxserver/jackett:latest
     restart: unless-stopped
     ports:
@@ -62,7 +106,6 @@ services:
       # - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # uncomment this line and comment line above to use Basic Auth instead of Organizr auth
 
   nzbget:
-    container_name: nzbget
     image: linuxserver/nzbget:latest
     restart: unless-stopped
     ports:
@@ -85,7 +128,6 @@ services:
       # - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # uncomment this line and comment line above to use Basic Auth instead of Organizr auth
 
   sonarr:
-    container_name: sonarr
     image: linuxserver/sonarr:preview
     restart: unless-stopped
     ports:
@@ -110,7 +152,6 @@ services:
       # - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # uncomment this line and comment line above to use Basic Auth instead of Organizr auth
 
   radarr:
-    container_name: radarr
     image: linuxserver/radarr:latest
     restart: unless-stopped
     ports:
@@ -135,7 +176,6 @@ services:
       # - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # uncomment this line and comment line above to use Basic Auth instead of Organizr auth
 
   bazarr:
-    container_name: bazarr
     image: linuxserver/bazarr:latest
     restart: unless-stopped
     ports:
@@ -159,7 +199,6 @@ services:
       # - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # uncomment this line and comment line above to use Basic Auth instead of Organizr auth
 
   organizr:
-    container_name: organizr
     image: organizrtools/organizr-v2:latest
     restart: unless-stopped
     expose:
@@ -178,7 +217,6 @@ services:
       - 'traefik.https.frontend.entryPoints=https' # delete for no remote access
 
   plex-server:
-    container_name: plex-server
     image: plexinc/pms-docker:latest
     restart: unless-stopped
     environment:
@@ -189,8 +227,28 @@ services:
       - ${ROOT}/config/plex/transcode:/transcode # temp transcoded files
       - ${ROOT}/complete:/data # media library
 
+  tautulli:
+    image: linuxserver/tautulli
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${ROOT}/config/tautulli:/config
+      - ${ROOT}/logs/tautulli:/logs
+    ports:
+      - 8181:8181
+    restart: unless-stopped
+    labels:
+      - 'traefik.backend=tautulli'
+      - 'traefik.local.frontend.rule=Host:tautulli.localhost'
+      - 'traefik.port=8181'
+      - 'traefik.enable=true'
+      - 'traefik.https.frontend.rule=Host:tautulli.${DOMAIN}' # delete for no remote access
+      - 'traefik.https.frontend.entryPoints=https' # delete for no remote access
+      - 'traefik.https.frontend.auth.forward.address=http://organizr/api/?v1/auth&group=1'
+
   traefik:
-    container_name: traefik
     image: traefik:latest
     restart: always
     command:

@@ -4,30 +4,6 @@
 It manages and downloads subtitles based on your requirements.
 You define your preferences by TV show or movies and Bazarr takes care of everything for you.
 
-## Docker Container
-
-```yaml
-bazarr:
-  container_name: bazarr
-  image: linuxserver/bazarr:latest
-  restart: unless-stopped
-  expose:
-    - '6767'
-  environment:
-    - PUID=${PUID} # default user id, defined in .env
-    - PGID=${PGID} # default group id, defined in .env
-    - TZ=${TZ} # timezone, defined in .env
-  volumes:
-    - ${ROOT}/config/bazarr:/config
-    - ${ROOT}/complete/movies:/movies
-    - ${ROOT}/complete/tv:/tv
-  labels:
-    - 'traefik.backend=bazarr'
-    - 'traefik.local.frontend.rule=Host:bazarr.localhost'
-    - 'traefik.port=6767'
-    - 'traefik.enable=true'
-```
-
 ## Configuration
 
 Now you should be able to visit `bazarr.localhost`. You'll be greeted with a configuration page.

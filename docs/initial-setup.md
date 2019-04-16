@@ -31,7 +31,7 @@ For each of these images, there is some unique coniguration that needs to be don
 
 Here is an example of what your `.env` file should look like, use values that fit for your own setup.
 
-```bash
+````bash
 # Your timezone, https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 TZ=America/New_York
 # UNIX PUID and PGID, find with: id $USER
@@ -39,7 +39,12 @@ PUID=1000
 PGID=1000
 # The directory where data and configuration will be stored.
 ROOT=/media/my_user/storage/homemedia
-```
+
+# PIA Information
+PIA_USER=pia_username
+PIA_PASS=pia_password
+PIA_REGION=US New York City (Your PIA region here)```
+````
 
 Things to notice:
 

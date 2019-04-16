@@ -1,26 +1,6 @@
 # Setup Deluge
 
-## Docker container
-
-We'll use deluge Docker image from linuxserver, which runs both the deluge daemon and web UI in a single container.
-
-```yaml
-deluge:
-  container_name: deluge
-  image: linuxserver/deluge:latest
-  restart: unless-stopped
-  network_mode: service:vpn # run on the vpn network
-  environment:
-    - PUID=${PUID} # default user id, defined in .env
-    - PGID=${PGID} # default group id, defined in .env
-    - TZ=${TZ} # timezone, defined in .env
-  volumes:
-    - ${ROOT}/downloads:/downloads # downloads folder
-    - ${ROOT}/config/deluge:/config # config files
-```
-
-Then run the container with `docker-compose up -d`.
-To follow container logs, run `docker-compose logs -f deluge`.
+**_Note: The default configuration now uses qBittorrent, and this section will be updated soon™. The configuration is basically the same, so if you understand this guide you can configure qBittorrent pretty well too. Use `qbit.localhost` to access, with the default username `admin` and password `adminadmin`_**
 
 ## Configuration
 

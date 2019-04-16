@@ -14,3 +14,5 @@
   - [Bazarr](bazarr.md)
   - [Organizr](organizr.md)
   - [HTTPS Reverse Proxy (optional)](reverse-proxy.md)
+- Deprecated Guides
+  - [VPN with Open VPN](vpn-with-open-vpn.md)

@@ -2,33 +2,6 @@
 
 Radarr is a fork of Sonarr, made for movies instead of TV shows. For a good while I've used CouchPotato for that exact purpose, but have not been really happy with the results. Radarr intends to be as good as Sonarr !
 
-## Docker container
-
-Radarr is _very_ similar to Sonarr. You won't be surprised by this configuration.
-
-```yaml
-radarr:
-  container_name: radarr
-  image: linuxserver/radarr:latest
-  restart: unless-stopped
-  ports:
-    - 7878:7878
-  environment:
-    - PUID=${PUID} # default user id, defined in .env
-    - PGID=${PGID} # default group id, defined in .env
-    - TZ=${TZ} # timezone, defined in .env
-  volumes:
-    - /etc/localtime:/etc/localtime:ro
-    - ${ROOT}/config/radarr:/config # config files
-    - ${ROOT}/complete/movies:/movies # movies folder
-    - ${ROOT}/downloads:/downloads # download folder
-  labels:
-    - 'traefik.backend=radarr'
-    - 'traefik.local.frontend.rule=Host:radarr.localhost'
-    - 'traefik.port=7878'
-    - 'traefik.enable=true'
-```
-
 ## Configuration
 
 Radarr Web UI is available at `radarr.localhost`.

@@ -1,30 +1,5 @@
 # Setup NZBGet
 
-## Docker container
-
-Once again we'll use the Docker image from linuxserver and set it in a docker-compose file.
-
-```yaml
-nzbget:
-  container_name: nzbget
-  image: linuxserver/nzbget:latest
-  restart: unless-stopped
-  ports:
-    - 6789:6789
-  environment:
-    - PUID=${PUID} # default user id, defined in .env
-    - PGID=${PGID} # default group id, defined in .env
-    - TZ=${TZ} # timezone, defined in .env
-  volumes:
-    - ${ROOT}/downloads:/downloads # download folder
-    - ${ROOT}/config/nzbget:/config # config files
-  labels:
-    - 'traefik.backend=nzbget'
-    - 'traefik.local.frontend.rule=Host:nzbget.localhost'
-    - 'traefik.port=6789'
-    - 'traefik.enable=true'
-```
-
 ## Configuration and usage
 
 After running the container, web UI should be available on `nzbget.localhost`.

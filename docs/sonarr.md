@@ -1,38 +1,5 @@
 # Setup Sonarr
 
-## Docker container
-
-Guess who made a nice Sonarr Docker image? Linuxserver.io !
-
-Let's go:
-
-```yaml
-sonarr:
-  container_name: sonarr
-  image: linuxserver/sonarr:latest
-  restart: unless-stopped
-  ports:
-    - 8989:8989
-  environment:
-    - PUID=${PUID} # default user id, defined in .env
-    - PGID=${PGID} # default group id, defined in .env
-    - TZ=${TZ} # timezone, defined in .env
-  volumes:
-    - /etc/localtime:/etc/localtime:ro
-    - ${ROOT}/config/sonarr:/config # config files
-    - ${ROOT}/complete/tv:/tv # tv shows folder
-    - ${ROOT}/downloads:/downloads # download folder
-  labels:
-    - 'traefik.backend=sonarr'
-    - 'traefik.local.frontend.rule=Host:sonarr.localhost'
-    - 'traefik.port=8989'
-    - 'traefik.enable=true'
-```
-
-`docker-compose up -d`
-
-Sonarr web UI listens on port 8989 by default. You need to mount your tv shows directory (the one where everything will be nicely sorted and named). And your download folder, because sonarr will look over there for completed downloads, then move them to the appropriate directory.
-
 ## Configuration
 
 Sonarr should be available on `sonarr.localhost`. Go straight to the `Settings` tab.

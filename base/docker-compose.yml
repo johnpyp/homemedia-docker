@@ -65,7 +65,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
-      - UMASK_SET=000
+      - UMASK_SET=002
       - WEBUI_PORT=8113
     volumes:
       - ${ROOT}/config/qbittorrent:/config

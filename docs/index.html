@@ -9,15 +9,23 @@
       name="viewport"
       content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
     />
-    <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/vue.css" />
+    <link rel="stylesheet" href="//unpkg.com/docsify/themes/vue.css" />
+    <style>
+      .markdown-section {
+        max-width: 1200px;
+      }
+      img {
+        max-width: 800px;
+      }
+    </style>
   </head>
   <body>
     <div id="app"></div>
     <script>
       window.$docsify = {
         coverpage: true,
-        name: 'HTPC Download Box',
-        repo: 'sebgl/htpc-download-box',
+        name: 'Homemedia Docker',
+        repo: 'johnpyp/homemedia-docker',
         loadSidebar: true,
         subMaxLevel: 2
       }

@@ -35,7 +35,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ${ROOT}/config/hydra2:/config
-      - ${ROOT}/downloads:/downloads
+      - ${ROOT}/usenet:/data/usenet
     ports:
       - 5076:5076
     restart: unless-stopped
@@ -75,11 +75,11 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
-      - UMASK_SET=000
+      - UMASK_SET=002
       - WEBUI_PORT=8113
     volumes:
       - ${ROOT}/config/qbittorrent:/config
-      - ${ROOT}/downloads:/downloads
+      - ${ROOT}/torrents:/data/torrents
     restart: unless-stopped
 
   jackett:
@@ -93,7 +93,7 @@ services:
       - TZ=${TZ} # timezone, defined in .env
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ${ROOT}/downloads/torrent-blackhole:/downloads # place where to put .torrent files for manual download
+      - ${ROOT}/torrents/blackhole:/blackhole # place where to put .torrent files for manual download
       - ${ROOT}/config/jackett:/config # config files
     labels:
       - 'traefik.backend=jackett'
@@ -115,7 +115,7 @@ services:
       - PGID=${PGID} # default group id, defined in .env
       - TZ=${TZ} # timezone, defined in .env
     volumes:
-      - ${ROOT}/downloads:/downloads # download folder
+      - ${ROOT}/usenet:/data/usenet # download folder
       - ${ROOT}/config/nzbget:/config # config files
     labels:
       - 'traefik.backend=nzbget'
@@ -138,9 +138,8 @@ services:
       - TZ=${TZ} # timezone, defined in .env
     volumes:
       - /etc/localtime:/etc/localtime:ro
+      - ${ROOT}:/data
       - ${ROOT}/config/sonarr:/config # config files
-      - ${ROOT}/complete/tv:/tv # tv shows folder
-      - ${ROOT}/downloads:/downloads # download folder
     labels:
       - 'traefik.backend=sonarr'
       - 'traefik.local.frontend.rule=Host:sonarr.localhost'
@@ -162,9 +161,8 @@ services:
       - TZ=${TZ} # timezone, defined in .env
     volumes:
       - /etc/localtime:/etc/localtime:ro
+      - ${ROOT}:/data
       - ${ROOT}/config/radarr:/config # config files
-      - ${ROOT}/complete/movies:/movies # movies folder
-      - ${ROOT}/downloads:/downloads # download folder
     labels:
       - 'traefik.backend=radarr'
       - 'traefik.local.frontend.rule=Host:radarr.localhost'
@@ -186,8 +184,7 @@ services:
       - TZ=${TZ} # timezone, defined in .env
     volumes:
       - ${ROOT}/config/bazarr:/config
-      - ${ROOT}/complete/movies:/movies
-      - ${ROOT}/complete/tv:/tv
+      - ${ROOT}/library:/library
     labels:
       - 'traefik.backend=bazarr'
       - 'traefik.local.frontend.rule=Host:bazarr.localhost'
@@ -225,7 +222,7 @@ services:
     volumes:
       - ${ROOT}/config/plex/db:/config # plex database
       - ${ROOT}/config/plex/transcode:/transcode # temp transcoded files
-      - ${ROOT}/complete:/data # media library
+      - ${ROOT}/library:/data # media library
 
   tautulli:
     image: linuxserver/tautulli

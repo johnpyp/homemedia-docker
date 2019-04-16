@@ -105,24 +105,24 @@ services:
       - 'traefik.https.frontend.auth.forward.address=http://organizr/api/?v1/auth&group=1'
       # - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # uncomment this line and comment line above to use Basic Auth instead of Organizr auth
 
-  nzbget:
-    image: linuxserver/nzbget:latest
+  sabnzbd:
+    image: linuxserver/sabnzbd:latest
     restart: unless-stopped
     ports:
-      - 6789:6789
+      - 8081:8080
     environment:
       - PUID=${PUID} # default user id, defined in .env
       - PGID=${PGID} # default group id, defined in .env
       - TZ=${TZ} # timezone, defined in .env
     volumes:
       - ${ROOT}/usenet:/data/usenet # download folder
-      - ${ROOT}/config/nzbget:/config # config files
+      - ${ROOT}/config/sabnzbd:/config # config files
     labels:
-      - 'traefik.backend=nzbget'
-      - 'traefik.local.frontend.rule=Host:nzbget.localhost'
-      - 'traefik.port=6789'
+      - 'traefik.backend=sabnzbd'
+      - 'traefik.local.frontend.rule=Host:sabnzbd.localhost'
+      - 'traefik.port=8080'
       - 'traefik.enable=true'
-      - 'traefik.https.frontend.rule=Host:nzbget.${DOMAIN}' # delete for no remote access
+      - 'traefik.https.frontend.rule=Host:sabnzbd.${DOMAIN}' # delete for no remote access
       - 'traefik.https.frontend.entryPoints=https' # delete for no remote access
       - 'traefik.https.frontend.auth.forward.address=http://organizr/api/?v1/auth&group=1'
       # - 'traefik.https.frontend.auth.basic.users=${USERNAME}:${PASSWORD}' # uncomment this line and comment line above to use Basic Auth instead of Organizr auth

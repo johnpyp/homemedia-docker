@@ -1,5 +1,7 @@
 # Setup Sonarr
 
+**_Note: This configuration section uses the old version of Sonarr, rather than the new v3 version. This section should be updated soon™. Most of the princples apply, but the UI will look different than in the images._**
+
 ## Configuration
 
 Sonarr should be available on `sonarr.localhost`. Go straight to the `Settings` tab.

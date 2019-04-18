@@ -1,21 +1,18 @@
-# Setup qBittorrent
+# Setup Deluge
 
 ## Configuration
 
-You should now be able to login at `localhost:8113` with the default username:password of `admin:adminadmin`
+You should now be able to login at `deluge.localhost` with the default password of `deluge`. Once you do that, click "Yes" to change the default password.
 
-Note that we can't login at `qbit.localhost`, we'll fix this issue in a second.
+![Deluge Change Password](img/deluge-change-password.png)
 
-![Qbit Settings Web UI](img/qbit-settings-web-ui.png)
+Enter "deluge" into the old password field, leave new/confirm password blank, and click change. This will let you login to deluge without a password. Security isn't necessary for this, as we'll handle that externally later on.
 
-Here, in `Settings/Web UI/Security`, you'll want to disable all three options (clickjacking, Cross-Site, and Host Header validation).
-These are security options that aren't necessary with the reverse proxy that we use, and we need to disable them so the reverse proxy will work.
+Refresh, and if prompted with a Connection Manager window, click the first result and click connect. Then go to preferences.
 
-The reverse proxy with qbittorrent can be a bit buggy sometimes, and I'm looking to improve it. Make sure to refresh and do things like that if it isn't working.
+![Deluge Change Paths](img/deluge-change-paths.png)
 
-![Qbit Settings Downloads](img/qbit-settings-downloads.png)
-
-In download settings, you'll want to set the `Default Save Path` and `Keep Incomplete Torrents In` settings to to paths shown in the image above.
+Here, in `Preferences/Downloads`, you'll want to check "Move completed to", and change the paths to the ones shown above.
 
 You can also tweak queue settings, defaults are fairly small. Also you can decide to stop seeding after a certain ratio is reached. That will be useful for Sonarr, since Sonarr can only remove finished downloads from deluge when the torrent has stopped seeding. Setting a very low ratio is not very fair though !
 

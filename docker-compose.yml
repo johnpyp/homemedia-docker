@@ -27,21 +27,14 @@ services:
       - /dev/net/tun
     restart: unless-stopped
     ports:
-      - 8113:8113
+      - 8112:8112
     environment:
       - USER=${PIA_USER}
       - PASSWORD=${PIA_PASS}
       - PROTOCOL=udp
       - ENCRYPTION=strong
       - REGION=${PIA_REGION}
-      - EXTRA_SUBNETS=192.168.1.0/24
-      - NONROOT=
-    labels:
-      <<: *default_traefik_opts
-      traefik.backend: pia
-      traefik.port: 8113
-      traefik.local.frontend.rule: 'Host:qbit.${LOCAL_DOMAIN:-localhost}'
-      traefik.https.frontend.rule: 'Host.qbit.${DOMAIN:-default}'
+      - EXTRA_SUBNETS=192.168.0.0/12
 
   hydra2:
     image: linuxserver/hydra2:latest
@@ -80,19 +73,25 @@ services:
       traefik.local.frontend.rule: 'Host:ombi.${LOCAL_DOMAIN:-localhost}'
       traefik.https.frontend.rule: 'Host:ombi.${DOMAIN:-default}'
 
-  qbittorrent:
-    image: linuxserver/qbittorrent:latest
+  deluge:
+    image: linuxserver/deluge
     network_mode: service:pia
+    depends_on:
+      - pia
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
+      - UMASK_SET=022
       - TZ=${TZ}
-      - UMASK_SET=002
-      - WEBUI_PORT=8113
     volumes:
-      - ${ROOT}/config/qbittorrent:/config
+      - ${ROOT}/config/deluge:/config
       - ${ROOT}/torrents:/data/torrents
     restart: unless-stopped
+    labels:
+      <<: *default_traefik_opts
+      traefik.port: 8112
+      traefik.local.frontend.rule: 'Host:deluge.${LOCAL_DOMAIN:-localhost}'
+      traefik.https.frontend.rule: 'Host:deluge.${DOMAIN:-default}'
 
   jackett:
     image: linuxserver/jackett:latest

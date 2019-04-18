@@ -4,23 +4,38 @@
 
 ## Configuration
 
-Sonarr should be available on `sonarr.localhost`. Go straight to the `Settings` tab.
+Sonarr should be available on `sonarr.localhost`. Go straight to the `Settings` tab, then the `Media Management` tab.
 
-![Sonarr settings](img/sonarr_settings.png)
+![Sonarr settings](img/sonarr_media_management.png)
 
-Enable `Ignore Deleted Episodes`: if like me you delete files once you have watched them, this makes sure the episodes won't be re-downloaded again.
-In `Media Management`, you can choose to rename episodes automatically. This is a very nice feature I've been using for a long time; but now I choose to keep original names. Plex sub-zero plugins gives better results when the original filename (containing the usual `x264-EVOLVE[ettv]`-like stuff) is kept.
+Make sure Advanced options are enabled, and make these changes:
+
+- Enable: Rename Episodes
+- Standard Episode Format: `{Series Title} - S{season:00}E{episode:00} - {Episode Title} {Quality Title} {MediaInfo Full}-{Release Group}`
+- Daily Episode Format: `{Series Title} - {Air-Date} - {Episode Title} {Quality Title} {MediaInfo Full}-{Release Group}`
+- Anime Episode Format: `{Series Title} - S{season:00}E{episode:00} - {Episode Title} {Quality Title} {MediaInfo Full}-{Release Group}`
+- Enable: Import Extra Files
+- Import Extra Files: `srt,nfo`
+
 In `profiles` you can set new quality profiles, default ones are fairly good. There is an important option at the bottom of the page: do you want to give priority to Usenet or Torrents for downloading episodes? I'm keeping the default Usenet first.
 
-`Indexers` is the important tab: that's where Sonarr will grab information about released episodes. Nowadays a lot of Usenet indexers are relying on Newznab protocol: fill-in the URL and API key you are using. You can find some indexers on this [subreddit wiki](https://www.reddit.com/r/usenet/wiki/indexers). It's nice to use several ones since there are quite volatile. You can find suggestions on Sonarr Newznab presets. Some of these indexers provide free accounts with a limited number of API calls, you'll have to pay to get more. Usenet-crawler is one of the best free indexers out there.
+![Sonarr Indexers Newznab](img/sonarr_indexers_newznab.png)
+
+> Note: This section is for usenet, if you aren't using usenet you can skip this.
+
+`Indexers` is the important tab: that's where Sonarr will grab information about released episodes. Nowadays a lot of Usenet indexers are relying on Newznab protocol: fill-in the URL and API key you are using. You can find some indexers on this [subreddit wiki](https://www.reddit.com/r/usenet/wiki/indexers). It's nice to use several ones since there are quite volatile. You can find suggestions on Sonarr Newznab presets. Some of these indexers provide free accounts with a limited number of API calls, you'll have to pay to get more. Usenet-crawler is a good free indexer option.
+
+![Jackett indexers](img/jackett_indexers.png)
+
+![Sonarr torznab add](img/sonarr_indexers_torznab.png)
+
+> Note: This section is for torrents, if you aren't using torrents you can skip this.
 
 For torrents indexers, I activate Torznab custom indexers that point to my local Jackett service. This allows searches across all torrent indexers configured in Jackett. You have to configure them one by one though.
 
 Get torrent indexers Jackett proxy URLs by clicking `Copy Torznab Feed` in Jackett Web UI. Use the global Jackett API key as authentication.
 
-![Jackett indexers](img/jackett_indexers.png)
-
-![Sonarr torznab add](img/sonarr_torznab.png)
+**_Note: You must change the host url to `jackett:9117` as shown in the image above._**
 
 `Download Clients` tab is where we'll configure links with our two download clients: NZBGet and Deluge.
 There are existing presets for these 2 that we'll fill with the proper configuration.

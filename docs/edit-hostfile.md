@@ -28,6 +28,7 @@ Things to note:
   - `sonarr.google.com`
   - `sonarr.media`
   - `sonarr.my.media`
+- The domain ending can be whatever you want, even real urls, as it will override them in favor of your local mappings.
 
 There are a few caveats here:
 
@@ -35,6 +36,6 @@ There are a few caveats here:
 2. In your `.env` file, you need to change the `LOCAL_DOMAIN=` option to whatever your domain ending/name is. For example, if I want to use `sonarr.fun`, I'd set that to `LOCAL_DOMAIN=fun`.
 3. Whatever you choose must be consistent, so you can't do `sonarr.fun` and `radarr.media`, they have to use the same domain ending/name.
 
-# Rest of the Guide
+## Rest of the Guide
 
 If you have to make these changes, whenever you see `service.localhost` in this guide, replace it with the mappings you setup, e.g `sonarr.localhost` -> `sonarr.fun`.

@@ -4,6 +4,7 @@
 
 - Installation
   - [Initial Setup](initial-setup.md)
+  - [Edit Hostfile (optional)](edit-hostfile.md)
   - [PIA VPN](pia-vpn.md)
   - [qBittorrent](qbittorrent.md)
   - [Jackett](jackett.md)

@@ -33,7 +33,7 @@ Here is an example of what your `.env` file should look like; you should use val
 ```bash
 # Your timezone, https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 TZ=America/New_York
-# UNIX PUID and PGID, find with: id $USER, choose the uid= and the gid= values
+# UNIX PUID and PGID, find with: id $USER
 PUID=1000
 PGID=1000
 # The directory where data and configuration will be stored.
@@ -42,9 +42,11 @@ ROOT=/media/my_user/storage/homemedia
 # PIA Information
 PIA_USER=pia_username
 PIA_PASS=pia_password
-# This is your PIA region https://www.privateinternetaccess.com/pages/network/
+# This is your PIA region
 PIA_REGION=US New York City
 
+# Change this if accessing via LAN, you'll need to configure your hostfiles (coverered in the next section)
+LOCAL_DOMAIN=localhost
 # These options only need to be changed if you plan on using remote access + https
 DOMAIN=my_domain.com
 EMAIL=myemail@example.com

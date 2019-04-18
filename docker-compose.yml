@@ -40,7 +40,7 @@ services:
       <<: *default_traefik_opts
       traefik.backend: pia
       traefik.port: 8113
-      traefik.local.frontend.rule: 'Host:qbit.localhost'
+      traefik.local.frontend.rule: 'Host:qbit.${LOCAL_DOMAIN:-localhost}'
       traefik.https.frontend.rule: 'Host.qbit.${DOMAIN:-default}'
 
   hydra2:
@@ -59,7 +59,7 @@ services:
       <<: *default_traefik_opts
       traefik.backend: 'hydra2'
       traefik.port: '5076'
-      traefik.local.frontend.rule: 'Host:hydra2.localhost'
+      traefik.local.frontend.rule: 'Host:hydra2.${LOCAL_DOMAIN:-localhost}'
       traefik.https.frontend.rule: 'Host:hydra2.${DOMAIN:-default}'
 
   ombi:
@@ -77,7 +77,7 @@ services:
       <<: *default_traefik_no_auth
       traefik.backend: 'ombi'
       traefik.port: '3579'
-      traefik.local.frontend.rule: 'Host:ombi.localhost'
+      traefik.local.frontend.rule: 'Host:ombi.${LOCAL_DOMAIN:-localhost}'
       traefik.https.frontend.rule: 'Host:ombi.${DOMAIN:-default}'
 
   qbittorrent:
@@ -111,7 +111,7 @@ services:
       <<: *default_traefik_opts
       traefik.backend: 'jackett'
       traefik.port: '9117'
-      traefik.local.frontend.rule: 'Host:jackett.localhost'
+      traefik.local.frontend.rule: 'Host:jackett.${LOCAL_DOMAIN:-localhost}'
       traefik.https.frontend.rule: 'Host:jackett.${DOMAIN:-default}'
 
   sabnzbd:
@@ -130,7 +130,7 @@ services:
       <<: *default_traefik_opts
       traefik.backend: 'sabnzbd'
       traefik.port: '8080'
-      traefik.local.frontend.rule: 'Host:sabnzbd.localhost'
+      traefik.local.frontend.rule: 'Host:sabnzbd.${LOCAL_DOMAIN:-localhost}'
       traefik.https.frontend.rule: 'Host:sabnzbd.${DOMAIN:-default}'
 
   sonarr:
@@ -150,9 +150,8 @@ services:
       <<: *default_traefik_opts
       traefik.backend: 'sonarr'
       traefik.port: '8989'
-      traefik.local.frontend.rule: 'Host:sonarr.localhost'
+      traefik.local.frontend.rule: 'Host:sonarr.${LOCAL_DOMAIN:-localhost}'
       traefik.https.frontend.rule: 'Host:sonarr.${DOMAIN:-default}'
-
   radarr:
     image: linuxserver/radarr:latest
     restart: unless-stopped
@@ -170,7 +169,7 @@ services:
       <<: *default_traefik_opts
       traefik.backend: 'radarr'
       traefik.port: '7878'
-      traefik.local.frontend.rule: 'Host:radarr.localhost'
+      traefik.local.frontend.rule: 'Host:radarr.${LOCAL_DOMAIN:-localhost}'
       traefik.https.frontend.rule: 'Host:radarr.${DOMAIN:-default}'
 
   bazarr:
@@ -189,7 +188,7 @@ services:
       <<: *default_traefik_opts
       traefik.backend: 'bazarr'
       traefik.port: '6767'
-      traefik.local.frontend.rule: 'Host:bazarr.localhost'
+      traefik.local.frontend.rule: 'Host:bazarr.${LOCAL_DOMAIN:-localhost}'
       traefik.https.frontend.rule: 'Host:bazarr.${DOMAIN:-default}'
 
   organizr:
@@ -206,7 +205,7 @@ services:
       <<: *default_traefik_no_auth
       traefik.backend: 'organizr'
       traefik.port: '80'
-      traefik.local.frontend.rule: 'Host:organizr.localhost'
+      traefik.local.frontend.rule: 'Host:organizr.${LOCAL_DOMAIN:-localhost}'
       traefik.https.frontend.rule: 'Host:organizr.${DOMAIN:-default}'
 
   plex-server:
@@ -236,7 +235,7 @@ services:
       <<: *default_traefik_opts
       traefik.backend: 'tautulli'
       traefik.port: '8181'
-      traefik.local.frontend.rule: 'Host:tautulli.localhost'
+      traefik.local.frontend.rule: 'Host:tautulli.${LOCAL_DOMAIN:-localhost}'
       traefik.https.frontend.rule: 'Host:tautulli.${DOMAIN:-default}'
 
   traefik:
@@ -261,5 +260,5 @@ services:
       <<: *default_traefik_opts
       traefik.backend: 'traefik'
       traefik.port: '8080'
-      traefik.local.frontend.rule: 'Host:traefik.localhost'
+      traefik.local.frontend.rule: 'Host:traefik.${LOCAL_DOMAIN:-localhost}'
       traefik.https.frontend.rule: 'Host:traefik.${DOMAIN:-default}'

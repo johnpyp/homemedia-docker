@@ -20,9 +20,9 @@ The included docker-compose file is your best option for having a seamless exper
 
 1. First, `git clone https://github.com/johnpyp/homemedia-docker` into a directory. This is where you will run the full setup from (note: this isn't the same as your media directory)
 
-2. Go into the `base` directory. This is the default, and suggested configuration to use to start.
+2. Enter the directory: `cd homemedia-docker`
 
-3. Copy the `.env.example` file included in your chosen directory to `.env`.
+3. Copy the `.env.example` file included in the directory to `.env`, e.g `cp .env.example .env`
 
 ## Setup environment variables
 
@@ -33,7 +33,7 @@ Here is an example of what your `.env` file should look like; you should use val
 ```bash
 # Your timezone, https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 TZ=America/New_York
-# UNIX PUID and PGID, find with: id $USER
+# UNIX PUID and PGID, find with: id $USER, choose the uid= and the gid= values
 PUID=1000
 PGID=1000
 # The directory where data and configuration will be stored.
@@ -42,7 +42,8 @@ ROOT=/media/my_user/storage/homemedia
 # PIA Information
 PIA_USER=pia_username
 PIA_PASS=pia_password
-PIA_REGION=US New York City (Your PIA region here)
+# This is your PIA region https://www.privateinternetaccess.com/pages/network/
+PIA_REGION=US New York City
 
 # These options only need to be changed if you plan on using remote access + https
 DOMAIN=my_domain.com
@@ -56,3 +57,11 @@ Things to notice:
 - The pia information are your credentials for [PrivateInternetAccess](https://privateinternetaccess.com), this is so the vpn can work safely.
 - The last two options, `DOMAIN` and `EMAIL`, are only needed if you plan to use the remote + https configuration later on in this guide.
 - This file should be in the same directory as your `docker-compose.yml` file so the values can be read in.
+
+## Launch Services
+
+Finally, in the directory, run `docker-compose up -d` to start all the services, with hopefully no errors if you entered good configuration.
+
+```
+
+```

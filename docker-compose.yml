@@ -195,8 +195,8 @@ services:
   organizr:
     image: organizrtools/organizr-v2:latest
     restart: unless-stopped
-    expose:
-      - '80'
+    ports:
+      - 82:80
     environment:
       - PUID=${PUID} # default user id, defined in .env
       - PGID=${PGID} # default group id, defined in .env

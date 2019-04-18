@@ -7,7 +7,7 @@
   - [PIA VPN](pia-vpn.md)
   - [qBittorrent](qbittorrent.md)
   - [Jackett](jackett.md)
-  - [NZBGet](nzbget.md)
+  - [Sabnzbd](sabnzbd.md)
   - [Plex](plex.md)
   - [Sonarr](sonarr.md)
   - [Radarr](radarr.md)

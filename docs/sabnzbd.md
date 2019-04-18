@@ -1,14 +1,12 @@
-# Setup NZBGet
+# Setup Sabnzbd
+
+[Sabnzbd](https://sabnzbd.org/) is an open-source usenet downloader. This will be used to download from our usenet backend, and integrate with Sonarr/Radarr.
 
 ## Configuration and usage
 
-After running the container, web UI should be available on `nzbget.localhost`.
+The Web UI is available at `localhost:8081`. After we configure this, you can access it at `sabnzbd.localhost`.
 
-Username: nzbget
-
-Password: tegbzn6789
-
-![NZBGet](img/nzbget_empty.png)
+First, choose your language and click Start Wizard.
 
 Since NZBGet stays on my local network, I choose to disable passwords (`Settings/Security/ControlPassword` set to empty).
 

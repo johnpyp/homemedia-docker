@@ -4,4 +4,11 @@
 
 _Disclaimer: I'm not encouraging/supporting piracy, this is for information purpose only._
 
-Placeholder introduction/basic overview
+> Complete homemedia setup with docker-compose
+
+- Only depends on docker
+- Easily extensible
+- Predictable behavior
+- Completely portable
+
+Visit the wiki, and start the guide here: https://git.io/fjtaQ

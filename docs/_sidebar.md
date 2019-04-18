@@ -4,8 +4,8 @@
 
 - Installation
   - [Initial Setup](initial-setup.md)
-  - [VPN](vpn.md)
-  - [Deluge](deluge.md)
+  - [PIA VPN](pia-vpn.md)
+  - [qBittorrent](qbittorrent.md)
   - [Jackett](jackett.md)
   - [NZBGet](nzbget.md)
   - [Plex](plex.md)

@@ -171,6 +171,25 @@ services:
       traefik.local.frontend.rule: 'Host:radarr.${LOCAL_DOMAIN:-localhost}'
       traefik.https.frontend.rule: 'Host:radarr.${DOMAIN:-default}'
 
+  lidarr:
+    image: linuxserver/lidarr:latest
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${ROOT}/config/lidarr:/config
+      - ${ROOT}:/data
+    ports:
+      - 8686:8686
+    restart: unless-stopped
+    labels:
+      <<: *default_traefik_opts
+      traefik.backend: 'lidarr'
+      traefik.port: '8686'
+      traefik.local.frontend.rule: 'Host:lidarr.${LOCAL_DOMAIN:-localhost}'
+      traefik.https.frontend.rule: 'Host:lidarr.${DOMAIN:-default}'
+
   bazarr:
     image: linuxserver/bazarr:latest
     restart: unless-stopped

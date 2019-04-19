@@ -16,7 +16,7 @@ To fix this, we're going to add a custom hostname in our hostfile.
 2. Add a new line, and enter this:
 
 ```
-server_ip_address_here  sonarr.fun radarr.fun bazarr.fun deluge.fun sabnzbd.fun organizr.fun jackett.fun traefik.fun ombi.fun hydra2.fun tautulli.fun
+server_ip_address_here  sonarr.fun radarr.fun bazarr.fun deluge.fun sabnzbd.fun organizr.fun jackett.fun traefik.fun ombi.fun hydra2.fun tautulli.fun lidarr.fun
 ```
 
 Things to note:

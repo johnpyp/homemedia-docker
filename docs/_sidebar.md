@@ -13,6 +13,7 @@
   - [Sonarr](sonarr.md)
   - [Radarr](radarr.md)
   - [Bazarr](bazarr.md)
+  - [Lidarr](lidarr.md)
   - [Organizr](organizr.md)
   - [HTTPS Reverse Proxy (optional)](reverse-proxy.md)
 - Deprecated Guides

@@ -1,22 +1,4 @@
-version: '3.6'
-
-x-lsio-env: &lsio_env
-  PUID: ${PUID}
-  PGID: ${PGID}
-  TZ: ${TZ}
-x-default-traefik-no-auth: &default_traefik_no_auth
-  traefik.enable: 'true'
-  traefik.https.frontend.headers.SSLRedirect: 'true'
-  traefik.https.frontend.headers.STSSeconds: '315360000'
-  traefik.https.frontend.headers.browserXSSFilter: 'true'
-  traefik.https.frontend.headers.contentTypeNosniff: 'true'
-  traefik.https.frontend.headers.forceSTSHeader: 'true'
-  traefik.https.frontend.headers.STSIncludeSubdomains: 'true'
-  traefik.https.frontend.headers.STSPreload: 'true'
-  traefik.https.frontend.headers.frameDeny: 'false'
-x-default-traefik-opts: &default_traefik_opts
-  <<: *default_traefik_no_auth
-  traefik.https.frontend.auth.forward.address: 'http://organizr/api/?v1/auth&group=1'
+version: '3.7'
 
 services:
   pia:
@@ -25,7 +7,6 @@ services:
       - net_admin
     devices:
       - /dev/net/tun
-    restart: unless-stopped
     ports:
       - 8112:8112
     environment:
@@ -34,8 +15,8 @@ services:
       - PROTOCOL=udp
       - ENCRYPTION=strong
       - REGION=${PIA_REGION}
-      - EXTRA_SUBNETS=192.168.0.0/12
-
+      - EXTRA_SUBNETS=192.168.1.0/24
+    restart: unless-stopped
   hydra2:
     image: linuxserver/hydra2:latest
     environment:
@@ -48,31 +29,22 @@ services:
     ports:
       - 5076:5076
     restart: unless-stopped
-    labels:
-      <<: *default_traefik_opts
-      traefik.backend: 'hydra2'
-      traefik.port: '5076'
-      traefik.local.frontend.rule: 'Host:hydra2.${LOCAL_DOMAIN:-localhost}'
-      traefik.https.frontend.rule: 'Host:hydra2.${DOMAIN:-default}'
-
   ombi:
     image: linuxserver/ombi:latest
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+      - VIRTUAL_HOST=ombi.${DOMAIN},ombi.${LOCAL_DOMAIN}
+      - LETSENCRYPT_HOST=ombi.${DOMAIN}
+      - VIRTUAL_PORT=3579
     volumes:
       - ${ROOT}/config/ombi:/config
     ports:
       - 3579:3579
     restart: unless-stopped
-    labels:
-      <<: *default_traefik_no_auth
-      traefik.backend: 'ombi'
-      traefik.port: '3579'
-      traefik.local.frontend.rule: 'Host:ombi.${LOCAL_DOMAIN:-localhost}'
-      traefik.https.frontend.rule: 'Host:ombi.${DOMAIN:-default}'
-
+    networks:
+      - nginx-proxy
   deluge:
     image: linuxserver/deluge
     network_mode: service:pia
@@ -87,15 +59,8 @@ services:
       - ${ROOT}/config/deluge:/config
       - ${ROOT}/torrents:/data/torrents
     restart: unless-stopped
-    labels:
-      <<: *default_traefik_opts
-      traefik.port: 8112
-      traefik.local.frontend.rule: 'Host:deluge.${LOCAL_DOMAIN:-localhost}'
-      traefik.https.frontend.rule: 'Host:deluge.${DOMAIN:-default}'
-
   jackett:
     image: linuxserver/jackett:latest
-    restart: unless-stopped
     ports:
       - 9117:9117
     environment:
@@ -106,35 +71,22 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ${ROOT}/torrents/blackhole:/blackhole # place where to put .torrent files for manual download
       - ${ROOT}/config/jackett:/config # config files
-    labels:
-      <<: *default_traefik_opts
-      traefik.backend: 'jackett'
-      traefik.port: '9117'
-      traefik.local.frontend.rule: 'Host:jackett.${LOCAL_DOMAIN:-localhost}'
-      traefik.https.frontend.rule: 'Host:jackett.${DOMAIN:-default}'
-
+    restart: unless-stopped
   sabnzbd:
     image: linuxserver/sabnzbd:latest
-    restart: unless-stopped
     ports:
-      - 8081:8080
+      - 8082:8080
     environment:
       - PUID=${PUID} # default user id, defined in .env
       - PGID=${PGID} # default group id, defined in .env
       - TZ=${TZ} # timezone, defined in .env
     volumes:
       - ${ROOT}/usenet:/data/usenet # download folder
+        #    - /home/johnpyp/usenet_incomplete:/data/usenet/incomplete
       - ${ROOT}/config/sabnzbd:/config # config files
-    labels:
-      <<: *default_traefik_opts
-      traefik.backend: 'sabnzbd'
-      traefik.port: '8080'
-      traefik.local.frontend.rule: 'Host:sabnzbd.${LOCAL_DOMAIN:-localhost}'
-      traefik.https.frontend.rule: 'Host:sabnzbd.${DOMAIN:-default}'
-
+    restart: unless-stopped
   sonarr:
     image: linuxserver/sonarr:preview
-    restart: unless-stopped
     ports:
       - 8989:8989
     environment:
@@ -145,15 +97,9 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ${ROOT}:/data
       - ${ROOT}/config/sonarr:/config # config files
-    labels:
-      <<: *default_traefik_opts
-      traefik.backend: 'sonarr'
-      traefik.port: '8989'
-      traefik.local.frontend.rule: 'Host:sonarr.${LOCAL_DOMAIN:-localhost}'
-      traefik.https.frontend.rule: 'Host:sonarr.${DOMAIN:-default}'
+    restart: unless-stopped
   radarr:
     image: linuxserver/radarr:latest
-    restart: unless-stopped
     ports:
       - 7878:7878
     environment:
@@ -164,35 +110,9 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - ${ROOT}:/data
       - ${ROOT}/config/radarr:/config # config files
-    labels:
-      <<: *default_traefik_opts
-      traefik.backend: 'radarr'
-      traefik.port: '7878'
-      traefik.local.frontend.rule: 'Host:radarr.${LOCAL_DOMAIN:-localhost}'
-      traefik.https.frontend.rule: 'Host:radarr.${DOMAIN:-default}'
-
-  lidarr:
-    image: linuxserver/lidarr:latest
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    volumes:
-      - ${ROOT}/config/lidarr:/config
-      - ${ROOT}:/data
-    ports:
-      - 8686:8686
     restart: unless-stopped
-    labels:
-      <<: *default_traefik_opts
-      traefik.backend: 'lidarr'
-      traefik.port: '8686'
-      traefik.local.frontend.rule: 'Host:lidarr.${LOCAL_DOMAIN:-localhost}'
-      traefik.https.frontend.rule: 'Host:lidarr.${DOMAIN:-default}'
-
   bazarr:
     image: linuxserver/bazarr:latest
-    restart: unless-stopped
     ports:
       - 6767:6767
     environment:
@@ -201,34 +121,25 @@ services:
       - TZ=${TZ} # timezone, defined in .env
     volumes:
       - ${ROOT}/config/bazarr:/config
-      - ${ROOT}/library:/library
-    labels:
-      <<: *default_traefik_opts
-      traefik.backend: 'bazarr'
-      traefik.port: '6767'
-      traefik.local.frontend.rule: 'Host:bazarr.${LOCAL_DOMAIN:-localhost}'
-      traefik.https.frontend.rule: 'Host:bazarr.${DOMAIN:-default}'
-
+      - ${ROOT}/library:/data/library
+    restart: unless-stopped
   organizr:
     image: organizrtools/organizr-v2:latest
-    restart: unless-stopped
     ports:
       - 82:80
     environment:
       - PUID=${PUID} # default user id, defined in .env
       - PGID=${PGID} # default group id, defined in .env
+      - VIRTUAL_HOST=organizr.${DOMAIN},organizr.${LOCAL_DOMAIN}
+      - LETSENCRYPT_HOST=organizr.${DOMAIN}
+      - VIRTUAL_PORT=80
     volumes:
       - ${ROOT}/config/organizr:/config
-    labels:
-      <<: *default_traefik_no_auth
-      traefik.backend: 'organizr'
-      traefik.port: '80'
-      traefik.local.frontend.rule: 'Host:organizr.${LOCAL_DOMAIN:-localhost}'
-      traefik.https.frontend.rule: 'Host:organizr.${DOMAIN:-default}'
-
+    restart: unless-stopped
+    networks:
+      - nginx-proxy
   plex-server:
     image: plexinc/pms-docker:latest
-    restart: unless-stopped
     environment:
       - TZ=${TZ} # timezone, defined in .env
     network_mode: host # access on port 32400
@@ -236,47 +147,70 @@ services:
       - ${ROOT}/config/plex/db:/config # plex database
       - ${ROOT}/config/plex/transcode:/transcode # temp transcoded files
       - ${ROOT}/library:/data # media library
-
+    restart: unless-stopped
   tautulli:
-    image: linuxserver/tautulli
+    image: linuxserver/tautulli:latest
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+      - VIRTUAL_HOST=tautulli.${DOMAIN},tautulli.${LOCAL_DOMAIN}
+      - LETSENCRYPT_HOST=tautulli.${DOMAIN}
+      - VIRTUAL_PORT=8181
     volumes:
       - ${ROOT}/config/tautulli:/config
       - ${ROOT}/logs/tautulli:/logs
     ports:
       - 8181:8181
     restart: unless-stopped
-    labels:
-      <<: *default_traefik_opts
-      traefik.backend: 'tautulli'
-      traefik.port: '8181'
-      traefik.local.frontend.rule: 'Host:tautulli.${LOCAL_DOMAIN:-localhost}'
-      traefik.https.frontend.rule: 'Host:tautulli.${DOMAIN:-default}'
-
-  traefik:
-    image: traefik:latest
-    restart: always
-    command:
-      --logLevel=info --entryPoints="Name:http Address::80" --defaultEntryPoints=https,http \
-      --docker --docker.domain=${DOMAIN:-default} --docker.endpoint="unix:///var/run/docker.sock" \
-      --docker.watch=true --docker.exposedbydefault=false \
-      --api \
-      --entryPoints="Name:https Address::443 TLS" \
-      --acme=true --acme.entrypoint=https --acme.httpchallenge --acme.httpchallenge.entrypoint=http \
-      --acme.domains=${DOMAIN:-default} --acme.email=${EMAIL:-default} --acme.storage=acme.json
+    networks:
+      - nginx-proxy
+  nextcloud:
+    image: wonderfall/nextcloud
     ports:
-      - 80:80
-      - 443:443
-      - 8080:8080
+      - 90:8888
+    depends_on:
+      - mariadb           # If using MySQL
+    environment:
+      - UID=${PUID}
+      - GID=${PGID}
+      - UPLOAD_MAX_SIZE=10G
+      - APC_SHM_SIZE=128M
+      - OPCACHE_MEM_SIZE=128
+      - CRON_PERIOD=15m
+      - TZ=${TZ}
+      - DOMAIN=localhost
+      - DB_TYPE=mysql
+      - DB_NAME=nextcloud
+      - DB_USER=nextcloud
+      - DB_PASSWORD=${DB_PASS}
+      - DB_HOST=mariadb
+      - VIRTUAL_HOST=nextcloud.${DOMAIN},nextcloud.${LOCAL_DOMAIN}
+      - LETSENCRYPT_HOST=nextcloud.${DOMAIN}
+      - VIRTUAL_PORT=8888
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ${ROOT}/config/traefik/acme.json:/acme.json
-    labels:
-      <<: *default_traefik_opts
-      traefik.backend: 'traefik'
-      traefik.port: '8080'
-      traefik.local.frontend.rule: 'Host:traefik.${LOCAL_DOMAIN:-localhost}'
-      traefik.https.frontend.rule: 'Host:traefik.${DOMAIN:-default}'
+      - ${ROOT}/config/nextcloud/data:/data
+      - ${ROOT}/config/nextcloud/config:/config
+      - ${ROOT}/config/nextcloud/apps:/apps2
+      - ${ROOT}/config/nextcloud/themes:/nextcloud/themes
+    restart: unless-stopped
+    networks:
+      - nginx-proxy
+  mariadb:
+    image: linuxserver/mariadb
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - MYSQL_ROOT_PASSWORD=${DB_PASS}
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD=${DB_PASS}
+      - MYSQL_DATABASE=nextcloud
+    volumes:
+      - ${ROOT}/config/mariadb:/config
+    restart: unless-stopped
+
+networks:
+  nginx-proxy:
+    external:
+      name: nginx-proxy

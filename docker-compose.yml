@@ -1,21 +1,24 @@
 version: '3.7'
 
 services:
-  pia:
-    image: qmcgaw/private-internet-access:latest
+  transmission:
+    image: haugene/transmission-openvpn
     cap_add:
       - net_admin
-    devices:
-      - /dev/net/tun
-    ports:
-      - 8112:8112
     environment:
-      - USER=${PIA_USER}
-      - PASSWORD=${PIA_PASS}
-      - PROTOCOL=udp
-      - ENCRYPTION=strong
-      - REGION=${PIA_REGION}
-      - EXTRA_SUBNETS=192.168.1.0/24
+      - CREATE_TUN_DEVICE=true
+      - OPENVPN_PROVIDER=${OPENVPN_PROVIDER}
+      - OPENVPN_CONFIG=${OPENVPN_CONFIG}
+      - OPENVPN_USERNAME=${OPENVPN_USERNAME}
+      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
+      - LOCAL_NETWORK=192.168.1.0/24
+      - PUID=${PUID}
+      - PGID=${PGID}
+    ports:
+      - 9091:9091
+    volumes:
+      - ${ROOT}/torrents:/data
+      - /etc/localtime:/etc/localtime:ro
     restart: unless-stopped
   hydra2:
     image: linuxserver/hydra2:latest
@@ -23,12 +26,15 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+      - VIRTUAL_HOST=hydra2.${LOCAL_DOMAIN}
+      - VIRTUAL_PORT=5076
     volumes:
       - ${ROOT}/config/hydra2:/config
       - ${ROOT}/usenet:/data/usenet
     ports:
       - 5076:5076
     restart: unless-stopped
+
   ombi:
     image: linuxserver/ombi:latest
     environment:
@@ -43,22 +49,6 @@ services:
     ports:
       - 3579:3579
     restart: unless-stopped
-    networks:
-      - nginx-proxy
-  deluge:
-    image: linuxserver/deluge
-    network_mode: service:pia
-    depends_on:
-      - pia
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - UMASK_SET=022
-      - TZ=${TZ}
-    volumes:
-      - ${ROOT}/config/deluge:/config
-      - ${ROOT}/torrents:/data/torrents
-    restart: unless-stopped
   jackett:
     image: linuxserver/jackett:latest
     ports:
@@ -72,6 +62,7 @@ services:
       - ${ROOT}/torrents/blackhole:/blackhole # place where to put .torrent files for manual download
       - ${ROOT}/config/jackett:/config # config files
     restart: unless-stopped
+
   sabnzbd:
     image: linuxserver/sabnzbd:latest
     ports:
@@ -82,9 +73,10 @@ services:
       - TZ=${TZ} # timezone, defined in .env
     volumes:
       - ${ROOT}/usenet:/data/usenet # download folder
-        #    - /home/johnpyp/usenet_incomplete:/data/usenet/incomplete
+      - ${USENET_INCOMPLETE}:/data/usenet/incomplete
       - ${ROOT}/config/sabnzbd:/config # config files
     restart: unless-stopped
+
   sonarr:
     image: linuxserver/sonarr:preview
     ports:
@@ -98,8 +90,9 @@ services:
       - ${ROOT}:/data
       - ${ROOT}/config/sonarr:/config # config files
     restart: unless-stopped
+
   radarr:
-    image: linuxserver/radarr:latest
+    image: linuxserver/radarr:preview
     ports:
       - 7878:7878
     environment:
@@ -111,6 +104,7 @@ services:
       - ${ROOT}:/data
       - ${ROOT}/config/radarr:/config # config files
     restart: unless-stopped
+
   bazarr:
     image: linuxserver/bazarr:latest
     ports:
@@ -123,48 +117,49 @@ services:
       - ${ROOT}/config/bazarr:/config
       - ${ROOT}/library:/data/library
     restart: unless-stopped
+
   organizr:
-    image: organizrtools/organizr-v2:latest
+    image: organizrtools/organizr-v2:plex
     ports:
       - 82:80
     environment:
       - PUID=${PUID} # default user id, defined in .env
       - PGID=${PGID} # default group id, defined in .env
-      - VIRTUAL_HOST=organizr.${DOMAIN},organizr.${LOCAL_DOMAIN}
-      - LETSENCRYPT_HOST=organizr.${DOMAIN}
-      - VIRTUAL_PORT=80
+      - TZ=${TZ}
     volumes:
       - ${ROOT}/config/organizr:/config
     restart: unless-stopped
-    networks:
-      - nginx-proxy
+
   plex-server:
-    image: plexinc/pms-docker:latest
+    image: linuxserver/plex:latest
     environment:
       - TZ=${TZ} # timezone, defined in .env
+      - NVIDIA_VISIBLE_DEVICES=all
+      - PUID=${PUID} # default user id, defined in .env
+      - PGID=${PGID} # default group id, defined in .env
+      - VERSION=latest
     network_mode: host # access on port 32400
+    devices:
+      - /dev/dri:/dev/dri
     volumes:
       - ${ROOT}/config/plex/db:/config # plex database
-      - ${ROOT}/config/plex/transcode:/transcode # temp transcoded files
+      - /tmp/transcode:/transcode # temp transcoded files
       - ${ROOT}/library:/data # media library
     restart: unless-stopped
+
   tautulli:
     image: linuxserver/tautulli:latest
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
-      - VIRTUAL_HOST=tautulli.${DOMAIN},tautulli.${LOCAL_DOMAIN}
-      - LETSENCRYPT_HOST=tautulli.${DOMAIN}
-      - VIRTUAL_PORT=8181
     volumes:
       - ${ROOT}/config/tautulli:/config
       - ${ROOT}/logs/tautulli:/logs
     ports:
       - 8181:8181
     restart: unless-stopped
-    networks:
-      - nginx-proxy
+
   nextcloud:
     image: wonderfall/nextcloud
     ports:
@@ -185,17 +180,12 @@ services:
       - DB_USER=nextcloud
       - DB_PASSWORD=${DB_PASS}
       - DB_HOST=mariadb
-      - VIRTUAL_HOST=nextcloud.${DOMAIN},nextcloud.${LOCAL_DOMAIN}
-      - LETSENCRYPT_HOST=nextcloud.${DOMAIN}
-      - VIRTUAL_PORT=8888
     volumes:
       - ${ROOT}/config/nextcloud/data:/data
       - ${ROOT}/config/nextcloud/config:/config
       - ${ROOT}/config/nextcloud/apps:/apps2
       - ${ROOT}/config/nextcloud/themes:/nextcloud/themes
     restart: unless-stopped
-    networks:
-      - nginx-proxy
   mariadb:
     image: linuxserver/mariadb
     environment:
@@ -209,8 +199,13 @@ services:
     volumes:
       - ${ROOT}/config/mariadb:/config
     restart: unless-stopped
-
-networks:
-  nginx-proxy:
-    external:
-      name: nginx-proxy
+  caddy:
+    image: abiosoft/caddy
+    ports:
+      - 80:80
+      - 443:443
+    env_file: .env
+    volumes:
+      - ./Caddyfile:/etc/Caddyfile
+      - ./.caddy:/root/.caddy
+    restart: unless-stopped

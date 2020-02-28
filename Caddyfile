@@ -1,0 +1,143 @@
+(reusable) {
+    basicauth / {$USERNAME} {$PASS}
+}
+
+# Remote
+tautulli.{$DOMAIN} {
+    import reusable
+    proxy / tautulli:8181 {
+        transparent
+    }
+}
+organizr.{$DOMAIN} {
+    import reusable
+    proxy / organizr:80 {
+        transparent
+    }
+}
+bazarr.{$DOMAIN} {
+    import reusable
+    proxy / bazarr:6767 {
+        transparent
+    }
+}
+radarr.{$DOMAIN} {
+    import reusable
+    proxy / radarr:7878 {
+        transparent
+    }
+}
+sonarr.{$DOMAIN} {
+    import reusable
+    proxy / sonarr:8989 {
+        transparent
+    }
+}
+sabnzbd.{$DOMAIN} {
+    import reusable
+    proxy / sabnzbd:8080 {
+        transparent
+    }
+}
+jackett.{$DOMAIN} {
+    import reusable
+    proxy / jackett:9117 {
+        transparent
+    }
+}
+ombi.{$DOMAIN} {
+    proxy / ombi:3579 {
+        transparent
+    }
+}
+hydra2.{$DOMAIN} {
+    import reusable
+    proxy / hydra2:5076 {
+        transparent
+    }
+}
+deluge.{$DOMAIN} {
+    import reusable
+    proxy / pia:8112 {
+        transparent
+    }
+}
+nextcloud.{$DOMAIN} {
+    import reusable
+    proxy / nextcloud:8888 {
+        transparent
+    }
+}
+# Local stuff
+http://tautulli.{$LOCAL_DOMAIN} {
+    tls off
+    proxy / tautulli:8181 {
+        transparent
+    }
+}
+http://organizr.{$LOCAL_DOMAIN} {
+    tls off
+    proxy / organizr:80 {
+        transparent
+    }
+}
+http://bazarr.{$LOCAL_DOMAIN} {
+    tls off
+    proxy / bazarr:6767 {
+        transparent
+    }
+}
+http://radarr.{$LOCAL_DOMAIN} {
+    tls off
+    proxy / radarr:7878 {
+        transparent
+    }
+}
+http://sonarr.{$LOCAL_DOMAIN} {
+    tls off
+    proxy / sonarr:8989 {
+        transparent
+    }
+}
+http://sabnzbd.{$LOCAL_DOMAIN} {
+    tls off
+    proxy / sabnzbd:8080 {
+        transparent
+    }
+}
+http://jackett.{$LOCAL_DOMAIN} {
+    tls off
+    proxy / jackett:9117 {
+        transparent
+    }
+}
+http://ombi.{$LOCAL_DOMAIN} {
+    tls off
+    proxy / ombi:3579 {
+        transparent
+    }
+}
+http://hydra2.{$LOCAL_DOMAIN} {
+    tls off
+    proxy / hydra2:5076 {
+        transparent
+    }
+}
+http://deluge.{$LOCAL_DOMAIN} {
+    tls off
+    proxy / pia:8112 {
+        transparent
+    }
+}
+http://nextcloud.{$LOCAL_DOMAIN} {
+    tls off
+    proxy / nextcloud:8888 {
+        transparent
+    }
+}
+http://plex.{$LOCAL_DOMAIN} {
+    tls off
+    proxy / plex-server:32400 {
+        transparent
+    }
+}

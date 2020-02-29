@@ -139,8 +139,6 @@ services:
       - PGID=${PGID} # default group id, defined in .env
       - VERSION=latest
     network_mode: host # access on port 32400
-    devices:
-      - /dev/dri:/dev/dri
     volumes:
       - ${ROOT}/config/plex/db:/config # plex database
       - /tmp/transcode:/transcode # temp transcoded files

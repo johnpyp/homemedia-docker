@@ -2,3 +2,6 @@
 data
 htpasswd
 .caddy
+config/
+logs/
+tmp/

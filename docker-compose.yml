@@ -1,209 +1,319 @@
-version: '3.7'
-
+version: "3.7"
 services:
-  transmission:
-    image: haugene/transmission-openvpn
+  vpn:
+    image: thrnz/docker-wireguard-pia
     cap_add:
-      - net_admin
+        - NET_ADMIN
+        - SYS_MODULE
+    # Mounting the tun device may be necessary for userspace implementations
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    sysctls:
+      # wg-quick fails to set this without --privileged, so set it here instead if needed
+      - net.ipv4.conf.all.src_valid_mark=1
+      # May as well disable ipv6. Should be blocked anyway.
+      - net.ipv6.conf.default.disable_ipv6=1
+      - net.ipv6.conf.all.disable_ipv6=1
+      - net.ipv6.conf.lo.disable_ipv6=1
+    healthcheck:
+      test: ping -c 1 www.google.com || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
     environment:
-      - CREATE_TUN_DEVICE=true
-      - OPENVPN_PROVIDER=${OPENVPN_PROVIDER}
-      - OPENVPN_CONFIG=${OPENVPN_CONFIG}
-      - OPENVPN_USERNAME=${OPENVPN_USERNAME}
-      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
+      # e.g us_new_york_city
+      - LOC=${PIA_LOC}
+      - USER=${PIA_USERNAME}
+      - PASS=${PIA_PASSWORD}
       - LOCAL_NETWORK=192.168.1.0/24
-      - PUID=${PUID}
-      - PGID=${PGID}
+      - WG_USERSPACE=1
     ports:
-      - 9091:9091
+      # Deluge
+      - 8112:8112
+      - 58846:58846
+      - 58946:58946
+      - 58946:58946/udp
+
+      # qBittorrent
+      - 8113:8113
+      - 6881:6881
+      - 6881:6881/udp
+
+      # rtorrent?
+      - 49184:49184
     volumes:
-      - ${ROOT}/torrents:/data
-      - /etc/localtime:/etc/localtime:ro
+      - ${CONFIG_ROOT}/pia-wireguard:/pia
     restart: unless-stopped
-  hydra2:
-    image: linuxserver/hydra2:latest
+
+
+  qbittorrent:
+    image: ghcr.io/linuxserver/qbittorrent:latest
+    network_mode: service:vpn
+    depends_on:
+      - vpn
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
-      - VIRTUAL_HOST=hydra2.${LOCAL_DOMAIN}
-      - VIRTUAL_PORT=5076
+      - UMASK_SET=022
+      - WEBUI_PORT=8113
     volumes:
-      - ${ROOT}/config/hydra2:/config
-      - ${ROOT}/usenet:/data/usenet
+      - ${CONFIG_ROOT}/qbittorrent:/config
+      - ${MEDIA_ROOT}/torrents:/data/torrents
+    labels:
+      com.centurylinklabs.watchtower.enable: true
+      autoheal: true
+    restart: unless-stopped
+
+  deluge:
+    image: ghcr.io/linuxserver/deluge
+    network_mode: service:vpn
+    depends_on:
+      - vpn
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK_SET=022
+      - WEBUI_PORT=8112
+    volumes:
+      - ${CONFIG_ROOT}/deluge:/config
+      - ${MEDIA_ROOT}/torrents:/data/torrents
+    labels:
+      com.centurylinklabs.watchtower.enable: true
+      autoheal: true
+    restart: unless-stopped
+
+  hydra2:
+    image: ghcr.io/linuxserver/nzbhydra2:latest
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_ROOT}/hydra2:/config
+      - ${MEDIA_ROOT}/usenet:/data/usenet
     ports:
       - 5076:5076
+    labels:
+      com.centurylinklabs.watchtower.enable: true
+      autoheal: true
     restart: unless-stopped
 
-  ombi:
-    image: linuxserver/ombi:latest
+  overseerr:
+    image: sctx/overseerr:develop
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
+      - LOG_LEVEL=debug
       - TZ=${TZ}
-      - VIRTUAL_HOST=ombi.${DOMAIN},ombi.${LOCAL_DOMAIN}
-      - LETSENCRYPT_HOST=ombi.${DOMAIN}
-      - VIRTUAL_PORT=3579
-    volumes:
-      - ${ROOT}/config/ombi:/config
     ports:
-      - 3579:3579
+      - 5055:5055
+    volumes:
+      - ${CONFIG_ROOT}/overseerr:/app/config
+    labels:
+      com.centurylinklabs.watchtower.enable: true
+      autoheal: true
     restart: unless-stopped
+
   jackett:
-    image: linuxserver/jackett:latest
+    image: ghcr.io/linuxserver/jackett:latest
     ports:
       - 9117:9117
     environment:
-      - PUID=${PUID} # default user id, defined in .env
-      - PGID=${PGID} # default group id, defined in .env
-      - TZ=${TZ} # timezone, defined in .env
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
+      - ${CONFIG_ROOT}/jackett:/config
+      - ${MEDIA_ROOT}/torrents/blackhole:/blackhole
       - /etc/localtime:/etc/localtime:ro
-      - ${ROOT}/torrents/blackhole:/blackhole # place where to put .torrent files for manual download
-      - ${ROOT}/config/jackett:/config # config files
+    labels:
+      com.centurylinklabs.watchtower.enable: true
+      autoheal: true
     restart: unless-stopped
 
   sabnzbd:
-    image: linuxserver/sabnzbd:latest
+    image: ghcr.io/linuxserver/sabnzbd:latest
     ports:
       - 8082:8080
     environment:
-      - PUID=${PUID} # default user id, defined in .env
-      - PGID=${PGID} # default group id, defined in .env
-      - TZ=${TZ} # timezone, defined in .env
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
-      - ${ROOT}/usenet:/data/usenet # download folder
-      - ${USENET_INCOMPLETE}:/data/usenet/incomplete
-      - ${ROOT}/config/sabnzbd:/config # config files
+      - ${CONFIG_ROOT}/sabnzbd:/config
+      - ${MEDIA_ROOT}/usenet:/data/usenet
+      - ${TMP_ROOT}/usenet/incomplete:/data/usenet/incomplete
+    labels:
+      com.centurylinklabs.watchtower.enable: true
+      autoheal: true
     restart: unless-stopped
 
   sonarr:
-    image: linuxserver/sonarr:preview
+    image: ghcr.io/linuxserver/sonarr:preview
     ports:
       - 8989:8989
     environment:
-      - PUID=${PUID} # default user id, defined in .env
-      - PGID=${PGID} # default group id, defined in .env
-      - TZ=${TZ} # timezone, defined in .env
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
+      - ${CONFIG_ROOT}/sonarr:/config
+      - ${MEDIA_ROOT}:/data
       - /etc/localtime:/etc/localtime:ro
-      - ${ROOT}:/data
-      - ${ROOT}/config/sonarr:/config # config files
+    labels:
+      com.centurylinklabs.watchtower.enable: true
+      autoheal: true
     restart: unless-stopped
 
   radarr:
-    image: linuxserver/radarr:preview
+    image: ghcr.io/linuxserver/radarr:nightly
     ports:
       - 7878:7878
     environment:
-      - PUID=${PUID} # default user id, defined in .env
-      - PGID=${PGID} # default group id, defined in .env
-      - TZ=${TZ} # timezone, defined in .env
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
+      - ${CONFIG_ROOT}/radarr:/config
+      - ${MEDIA_ROOT}:/data
       - /etc/localtime:/etc/localtime:ro
-      - ${ROOT}:/data
-      - ${ROOT}/config/radarr:/config # config files
+    labels:
+      com.centurylinklabs.watchtower.enable: true
+      autoheal: true
     restart: unless-stopped
 
   bazarr:
-    image: linuxserver/bazarr:latest
+    image: ghcr.io/linuxserver/bazarr:latest
     ports:
       - 6767:6767
     environment:
-      - PUID=${PUID} # default user id, defined in .env
-      - PGID=${PGID} # default group id, defined in .env
-      - TZ=${TZ} # timezone, defined in .env
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
-      - ${ROOT}/config/bazarr:/config
-      - ${ROOT}/library:/data/library
+      - ${CONFIG_ROOT}/bazarr:/config
+      - ${MEDIA_ROOT}/library:/data/library
+    labels:
+      com.centurylinklabs.watchtower.enable: true
+      autoheal: true
     restart: unless-stopped
 
   organizr:
-    image: organizrtools/organizr-v2:plex
+    image: organizr/organizr
     ports:
       - 82:80
     environment:
-      - PUID=${PUID} # default user id, defined in .env
-      - PGID=${PGID} # default group id, defined in .env
+      - fpm=true
+      - branch=v2-master
+      - PUID=${PUID}
+      - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - ${ROOT}/config/organizr:/config
+      - ${CONFIG_ROOT}/organizr:/config
+    labels:
+      com.centurylinklabs.watchtower.enable: true
+      autoheal: true
     restart: unless-stopped
 
   plex-server:
-    image: linuxserver/plex:latest
+    image: ghcr.io/linuxserver/plex:latest
     environment:
-      - TZ=${TZ} # timezone, defined in .env
+      - TZ=${TZ}
       - NVIDIA_VISIBLE_DEVICES=all
-      - PUID=${PUID} # default user id, defined in .env
-      - PGID=${PGID} # default group id, defined in .env
+      - PUID=${PUID}
+      - PGID=${PGID}
       - VERSION=latest
-    network_mode: host # access on port 32400
+    network_mode: host
     volumes:
-      - ${ROOT}/config/plex/db:/config # plex database
-      - /tmp/transcode:/transcode # temp transcoded files
-      - ${ROOT}/library:/data # media library
+      - ${CONFIG_ROOT}/plex/db:/config
+      - ${MEDIA_ROOT}/library:/data
+      - /tmp/transcode:/transcode
+    labels:
+      com.centurylinklabs.watchtower.enable: true
+      autoheal: true
     restart: unless-stopped
 
   tautulli:
-    image: linuxserver/tautulli:latest
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    volumes:
-      - ${ROOT}/config/tautulli:/config
-      - ${ROOT}/logs/tautulli:/logs
+    image: ghcr.io/linuxserver/tautulli:latest
     ports:
       - 8181:8181
-    restart: unless-stopped
-
-  nextcloud:
-    image: wonderfall/nextcloud
-    ports:
-      - 90:8888
-    depends_on:
-      - mariadb           # If using MySQL
-    environment:
-      - UID=${PUID}
-      - GID=${PGID}
-      - UPLOAD_MAX_SIZE=10G
-      - APC_SHM_SIZE=128M
-      - OPCACHE_MEM_SIZE=128
-      - CRON_PERIOD=15m
-      - TZ=${TZ}
-      - DOMAIN=localhost
-      - DB_TYPE=mysql
-      - DB_NAME=nextcloud
-      - DB_USER=nextcloud
-      - DB_PASSWORD=${DB_PASS}
-      - DB_HOST=mariadb
-    volumes:
-      - ${ROOT}/config/nextcloud/data:/data
-      - ${ROOT}/config/nextcloud/config:/config
-      - ${ROOT}/config/nextcloud/apps:/apps2
-      - ${ROOT}/config/nextcloud/themes:/nextcloud/themes
-    restart: unless-stopped
-  mariadb:
-    image: linuxserver/mariadb
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
-      - MYSQL_ROOT_PASSWORD=${DB_PASS}
-      - MYSQL_USER=nextcloud
-      - MYSQL_PASSWORD=${DB_PASS}
-      - MYSQL_DATABASE=nextcloud
     volumes:
-      - ${ROOT}/config/mariadb:/config
+      - ${CONFIG_ROOT}/tautulli:/config
+      - ${LOGS_ROOT}/tautulli:/logs
+    labels:
+      com.centurylinklabs.watchtower.enable: true
+      autoheal: true
     restart: unless-stopped
+
   caddy:
-    image: abiosoft/caddy
+    build: ./caddy
     ports:
       - 80:80
       - 443:443
-    env_file: .env
     volumes:
-      - ./Caddyfile:/etc/Caddyfile
-      - ./.caddy:/root/.caddy
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ${CONFIG_ROOT}/caddy/config:/config
+      - ${CONFIG_ROOT}/caddy/data:/data
+      - ${CONFIG_ROOT}/caddy/auth:/auth
+    environment:
+      - DOMAIN=${DOMAIN}
+      - CADDY_AUTH_USERS_PATH=/auth/users.json
+      - CADDY_AUTH_TOKEN_SECRET=${SECRET}
+    labels:
+      com.centurylinklabs.watchtower.enable: true
+      autoheal: true
     restart: unless-stopped
+
+  watchtower:
+    image: containrrr/watchtower
+    command: '--schedule "0 0 4 * * *" --cleanup --label-enable'
+    environment:
+      - TZ=${TZ}
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      autoheal: true
+    restart: unless-stopped
+  mariadb:
+    image: ghcr.io/linuxserver/mariadb
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - MYSQL_ROOT_PASSWORD=mariadbpassword
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=ncuser
+      - MYSQL_PASSWORD=ncpassword
+    volumes:
+      - ${CONFIG_ROOT}/mariadb:/config
+    labels:
+      com.centurylinklabs.watchtower.enable: true
+      autoheal: true
+    restart: unless-stopped
+
+  nextcloud:
+    image: ghcr.io/linuxserver/nextcloud
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_ROOT}/nextcloud:/config
+      - ${MEDIA_ROOT}/nextcloud:/data
+    depends_on:
+      - mariadb
+    labels:
+      autoheal: true
+    restart: unless-stopped
+  autoheal:
+    image: willfarrell/autoheal
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      com.centurylinklabs.watchtower.enable: true
+    restart: always
